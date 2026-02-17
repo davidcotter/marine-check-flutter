@@ -1,0 +1,52 @@
+<div class="app-shell">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <a href={~p"/html"} class="icon-btn">‹</a>
+      <span class="app-bar-title">Sign In</span>
+    </div>
+  </header>
+
+  <main class="app-content centered">
+    <div class="login-card">
+      <div class="login-logo">🌊</div>
+      <h1 class="login-title">Dip Report</h1>
+      <p class="login-subtitle">Sign in to post photos and sync your settings</p>
+
+      <%= if @sent do %>
+        <div class="success-box">
+          <span class="success-icon">✉️</span>
+          <p>Magic link sent! Check your email.</p>
+        </div>
+      <% else %>
+        <%= if @error do %>
+          <div class="error-box"><%= @error %></div>
+        <% end %>
+
+        <div class="login-form">
+          <input
+            type="email"
+            class="text-input"
+            placeholder="your@email.com"
+            value={@email}
+            phx-keyup="update_email"
+            phx-value={@email}
+            autocomplete="email"
+          />
+          <button
+            class="btn-primary btn-full"
+            phx-click="request_magic_link"
+            disabled={@loading}
+          >
+            <%= if @loading, do: "Sending…", else: "Send Magic Link" %>
+          </button>
+        </div>
+
+        <div class="login-divider"><span>or</span></div>
+
+        <a href={~p"/auth/google"} class="btn-google btn-full">
+          <span>G</span> Continue with Google
+        </a>
+      <% end %>
+    </div>
+  </main>
+</div>

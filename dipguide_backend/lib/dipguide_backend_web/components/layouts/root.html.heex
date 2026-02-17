@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="Dip Report — Sea Swimming Conditions Ireland" suffix=" · Dip Report">
+      {assigns[:page_title]}
+    </.live_title>
+    <meta name="description" content={assigns[:page_description] || "Real-time sea swimming conditions for Ireland. Wave heights, tide data, wind speed, and the Roughness Index — everything you need before your dip."} />
+    <meta name="keywords" content="sea swimming Ireland, open water swimming, tide times Ireland, wave height Ireland, Forty Foot conditions, wild swimming Ireland, coastal weather Ireland" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://dipreport.com" />
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Dip Report" />
+    <meta property="og:title" content={assigns[:page_title] || "Dip Report — Sea Swimming Conditions Ireland"} />
+    <meta property="og:description" content={assigns[:page_description] || "Real-time sea swimming conditions for Ireland. Wave heights, tide data, wind speed, and the Roughness Index."} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dipreport.com" />
+    <meta property="og:image" content="https://dipreport.com/icons/Icon-512.png" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={assigns[:page_title] || "Dip Report"} />
+    <meta name="twitter:description" content={assigns[:page_description] || "Real-time sea swimming conditions for Ireland."} />
+    <meta name="twitter:image" content="https://dipreport.com/icons/Icon-512.png" />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+    <script>
+      (() => {
+        const setTheme = (theme) => {
+          if (theme === "system") {
+            localStorage.removeItem("phx:theme");
+            document.documentElement.removeAttribute("data-theme");
+          } else {
+            localStorage.setItem("phx:theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        };
+        if (!document.documentElement.hasAttribute("data-theme")) {
+          setTheme(localStorage.getItem("phx:theme") || "system");
+        }
+        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
+        
+        window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+      })();
+    </script>
+  </head>
+  <body style="background:#0F172A; margin:0;">
+    {@inner_content}
+  </body>
+</html>

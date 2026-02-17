@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light Mode (Default) -->
+    <color name="widget_background">#F8FAFC</color>
+    <color name="widget_text_primary">#0F172A</color>
+    <color name="widget_text_secondary">#64748B</color>
+    <color name="widget_text_wind">#64748B</color>
+    <color name="widget_text_tide">#2563EB</color>
+    <color name="widget_text_precip">#2563EB</color>
+    <color name="widget_text_timestamp">#64748B</color>
+</resources>

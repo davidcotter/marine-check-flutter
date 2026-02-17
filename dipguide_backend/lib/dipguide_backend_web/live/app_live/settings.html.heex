@@ -1,0 +1,74 @@
+<div class="app-shell">
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <a href={~p"/html"} class="icon-btn">‹</a>
+      <span class="app-bar-title">Settings</span>
+    </div>
+  </header>
+
+  <main class="app-content">
+    <div class="settings-content">
+    <!-- Account -->
+    <div class="settings-section-label">ACCOUNT</div>
+    <div class="settings-card">
+      <%= if @current_scope do %>
+        <div class="settings-row">
+          <span class="settings-icon">👤</span>
+          <div class="settings-row-content">
+            <div class="settings-row-title"><%= @current_scope.user.email %></div>
+            <div class="settings-row-sub">Signed in</div>
+          </div>
+        </div>
+        <div class="settings-divider"></div>
+        <button class="settings-row danger" phx-click="logout">
+          <span class="settings-icon">🚪</span>
+          <span class="settings-row-title danger">Sign Out</span>
+        </button>
+      <% else %>
+        <a href={~p"/html/login"} class="settings-row">
+          <span class="settings-icon">🔑</span>
+          <div class="settings-row-content">
+            <div class="settings-row-title primary">Sign In</div>
+            <div class="settings-row-sub">Sync settings across devices</div>
+          </div>
+          <span class="chevron">›</span>
+        </a>
+      <% end %>
+    </div>
+
+    <!-- About -->
+    <div class="settings-section-label">ABOUT</div>
+    <div class="settings-card">
+      <a href={~p"/about"} class="settings-row">
+        <span class="settings-icon">🌊</span>
+        <div class="settings-row-content">
+          <div class="settings-row-title">About Dip Report</div>
+          <div class="settings-row-sub">Features, data sources &amp; how it works</div>
+        </div>
+        <span class="chevron">›</span>
+      </a>
+      <div class="settings-divider"></div>
+      <div class="settings-row">
+        <span class="settings-icon">📡</span>
+        <div class="settings-row-content">
+          <div class="settings-row-title">Data Sources</div>
+          <div class="settings-row-sub">Open-Meteo · Marine Institute · Met Éireann</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flutter App -->
+    <div class="settings-section-label">MOBILE APP</div>
+    <div class="settings-card">
+      <a href="/" class="settings-row">
+        <span class="settings-icon">📱</span>
+        <div class="settings-row-content">
+          <div class="settings-row-title">Open Flutter App</div>
+          <div class="settings-row-sub">Full-featured mobile experience</div>
+        </div>
+        <span class="chevron">›</span>
+      </a>
+    </div>
+    </div>
+  </main>
+</div>

@@ -1,16 +1,65 @@
-# marine_check
+# Dip Report
 
-A new Flutter project.
+A Flutter app for open sea swimmers in Ireland. Provides coastal weather, tide data, wave/swell info, community photo sharing, and a custom **Roughness Index** to help assess swimming conditions at a glance.
 
-## Getting Started
+**Live at**: https://dipreport.com
 
-This project is a starting point for a Flutter application.
+## Tech Stack
 
-A few resources to get you started if this is your first Flutter project:
+- **Frontend**: Flutter (Dart) — Android, iOS, Web
+- **Backend**: Phoenix / Elixir with Ecto
+- **Database**: PostgreSQL
+- **Web Server**: Nginx (reverse proxy, SSL)
+- **Auth**: Ueberauth (Google OAuth + Magic Link email)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Key Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 7-day coastal weather forecasts (Met Éireann, Marine Institute, Open-Meteo)
+- Roughness Index — safety score weighting wave height, wind, and swell direction
+- Community photo posts tied to swim locations
+- Social sharing with composite OG preview images
+- Live webcam feeds (Forty Foot, Tramore)
+- Android home screen widget
+
+## Project Structure
+
+```
+lib/                        # Flutter app
+├── main.dart
+├── models/
+├── screens/
+├── services/
+├── widgets/
+└── utils/
+
+dipguide_backend/           # Phoenix/Elixir backend
+├── lib/
+├── config/
+└── priv/repo/migrations/
+
+deploy_full.sh              # Full stack deployment
+deploy_web.sh               # Frontend-only deployment
+dipreport.nginx             # Nginx config
+```
+
+## Deployment
+
+```bash
+# Full stack
+bash deploy_full.sh
+
+# Frontend only
+bash deploy_web.sh
+```
+
+## Build
+
+```bash
+# Flutter web
+flutter build web --release
+
+# Android APK
+flutter build apk --release
+```
+
+See [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for full documentation.

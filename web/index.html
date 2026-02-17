@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -16,23 +17,142 @@
   -->
   <base href="$FLUTTER_BASE_HREF">
 
+  <!-- iOS meta tags & icons -->
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="marine_check">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DipGuide">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dipreport.com/">
+  <meta property="og:title" content="Dip Report — Sea Swimming Conditions Ireland">
+  <meta property="og:description" content="Real-time coastal forecasts, tide data, wave heights and the Roughness Index for open water swimmers in Ireland.">
+  <meta property="og:image" content="https://dipreport.com/icons/Icon-512.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://dipreport.com/">
+  <meta property="twitter:title" content="Dip Report — Sea Swimming Conditions Ireland">
+  <meta property="twitter:description" content="Real-time coastal forecasts, tide data, wave heights and the Roughness Index for open water swimmers in Ireland.">
+  <meta property="twitter:image" content="https://dipreport.com/icons/Icon-512.png">
 
-  <title>marine_check</title>
+  <title>Dip Report — Sea Swimming Conditions Ireland</title>
+  <meta name="msvalidate.01" content="0FE9E4CC4C70DD8C41F92A1C2CFDF8F0" />
   <link rel="manifest" href="manifest.json">
 </head>
-<body>
+
+<body style="background-color:#0f172a;margin:0;">
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // ── Service Worker + Push Notifications ──────────────────────────────────
+
+    const VAPID_PUBLIC_KEY = window._VAPID_PUBLIC_KEY || '';
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+    }
+
+    let _swRegistration = null;
+
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) return null;
+      try {
+        _swRegistration = await navigator.serviceWorker.register('/sw.js');
+        console.log('DipGuide: SW registered');
+        return _swRegistration;
+      } catch (e) {
+        console.error('DipGuide: SW registration failed', e);
+        return null;
+      }
+    }
+
+    window.requestPushPermission = async function () {
+      if (!('Notification' in window)) return 'unsupported';
+      const permission = await Notification.requestPermission();
+      return permission; // 'granted' | 'denied' | 'default'
+    };
+
+    window.getPushPermission = function () {
+      if (!('Notification' in window)) return 'unsupported';
+      return Notification.permission;
+    };
+
+    window.subscribeToPush = async function (vapidKey) {
+      const key = vapidKey || VAPID_PUBLIC_KEY;
+      if (!key) return JSON.stringify({ error: 'no_vapid_key' });
+      try {
+        const reg = _swRegistration || await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(key),
+        });
+        return JSON.stringify(sub.toJSON());
+      } catch (e) {
+        return JSON.stringify({ error: e.message });
+      }
+    };
+
+    window.unsubscribeFromPush = async function () {
+      try {
+        const reg = _swRegistration || await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe();
+        return 'ok';
+      } catch (e) {
+        return 'error';
+      }
+    };
+
+    window.getPushSubscription = async function () {
+      try {
+        const reg = _swRegistration || await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        return sub ? JSON.stringify(sub.toJSON()) : null;
+      } catch (e) {
+        return null;
+      }
+    };
+
+    registerServiceWorker();
+
+    // ── PWA Install Prompt ────────────────────────────────────────────────────
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('DipGuide: PWA beforeinstallprompt fired');
+      if (window.onPWAInstallable) {
+        window.onPWAInstallable();
+      }
+    });
+
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('DipGuide: PWA was installed');
+      deferredPrompt = null;
+      if (window.onPWAInstalled) {
+        window.onPWAInstalled();
+      }
+    });
+
+    window.isPWAInstallable = function () {
+      const isInstallable = deferredPrompt !== undefined;
+      console.log('DipGuide: isPWAInstallable called, returning', isInstallable);
+      return isInstallable;
+    };
+
+    window.installPWA = async function () {
+      if (!deferredPrompt) return 'not_installable';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      return outcome;
+    };
+  </script>
 </body>
+
 </html>

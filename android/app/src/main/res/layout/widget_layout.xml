@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Location Name -->
+    <TextView
+        android:id="@+id/widget_location_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Loading..."
+        android:textColor="@color/widget_text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- Main Content Row (takes remaining space) -->
+    <LinearLayout
+        android:id="@+id/widget_content_row"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Left: Weather Stats -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Weather Icon -->
+            <TextView
+                android:id="@+id/widget_weather_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⛅"
+                android:textColor="@color/widget_text_primary"
+                android:textSize="22sp" />
+
+            <!-- Temperature -->
+            <TextView
+                android:id="@+id/widget_temp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--°C"
+                android:textColor="@color/widget_text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <!-- Precipitation -->
+            <TextView
+                android:id="@+id/widget_precip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💧0%"
+                android:textColor="@color/widget_text_precip"
+                android:textSize="12sp" />
+
+            <!-- Wind -->
+            <TextView
+                android:id="@+id/widget_wind"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="-- km/h"
+                android:textColor="@color/widget_text_wind"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Right: Marine Stats -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Tide Icon -->
+            <ImageView
+                android:id="@+id/widget_tide_image"
+                android:layout_width="40dp"
+                android:layout_height="24dp"
+                android:contentDescription="Tide Graph"
+                android:src="@android:drawable/ic_menu_help" />
+
+            <!-- Tide Status -->
+            <TextView
+                android:id="@+id/widget_tide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-- m"
+                android:textColor="@color/widget_text_tide"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Roughness -->
+            <TextView
+                android:id="@+id/widget_roughness_index"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/roughness_pill"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="--"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_roughness"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:text="--"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Timestamp (always at bottom, never obscured) -->
+    <TextView
+        android:id="@+id/widget_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:text="Updated: --:--"
+        android:textColor="@color/widget_text_timestamp"
+        android:textSize="10sp" />
+
+</LinearLayout>

@@ -1,0 +1,251 @@
+<div class="app-shell" id="app-shell">
+  <!-- App Bar -->
+  <header class="app-bar">
+    <div class="app-bar-left">
+      <span class="app-bar-icon">🌊</span>
+      <div class="location-picker" onclick="var m=document.getElementById('location-menu');m.classList.toggle('hidden');event.stopPropagation()">
+        <span class="location-name"><%= @selected_location.name %></span>
+        <span class="dropdown-arrow">▾</span>
+      </div>
+    </div>
+    <div class="app-bar-actions">
+      <button class="icon-btn" phx-click="switch_tab" phx-value-tab={if @active_tab == :posts, do: "forecast", else: "posts"} title="Swimmer posts">
+        <%= if @active_tab == :posts, do: "📊", else: "📷" %>
+      </button>
+      <button class="icon-btn" phx-click="refresh" title="Refresh">🔄</button>
+      <a class="icon-btn" href={~p"/about"} title="About Dip Report" aria-label="About Dip Report">ℹ️</a>
+      <a class="icon-btn" href={~p"/html/settings"} title="Settings">⚙️</a>
+    </div>
+  </header>
+
+  <!-- Location Dropdown -->
+  <div id="location-menu" class="location-menu hidden">
+    <%= for loc <- @locations do %>
+      <button
+        class={"location-item #{if loc.id == @selected_location.id, do: "selected"}"}
+        phx-click="select_location"
+        phx-value-id={loc.id}
+      >
+        <span class="location-item-icon">📍</span>
+        <span><%= loc.name %></span>
+        <%= if loc.id == @selected_location.id do %>
+          <span class="check">✓</span>
+        <% end %>
+      </button>
+    <% end %>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class={"tab #{if @active_tab == :forecast, do: "active"}"} phx-click="switch_tab" phx-value-tab="forecast">
+      Forecast
+    </button>
+    <button class={"tab #{if @active_tab == :posts, do: "active"}"} phx-click="switch_tab" phx-value-tab="posts">
+      Swimmer Posts
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <main class="app-content">
+    <%= if @active_tab == :forecast do %>
+      <%= if @loading do %>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading marine data…</p>
+        </div>
+      <% else %>
+        <%= if @error do %>
+          <div class="error-state">
+            <span class="error-icon">⚠️</span>
+            <p><%= @error %></p>
+            <button class="btn-primary" phx-click="refresh">Retry</button>
+          </div>
+        <% else %>
+          <%= if @days != [] do %>
+            <%
+              day = Enum.at(@days, @selected_day_index)
+              max_idx = length(@days) - 1
+            %>
+
+            <!-- Day Navigation -->
+            <div class="day-nav">
+              <button class="nav-btn" phx-click="prev_day" disabled={@selected_day_index == 0}>‹</button>
+              <div class="day-info" phx-click="jump_today">
+                <span class={"day-label #{if day.label == "TODAY", do: "today"}"}><%= day.label %></span>
+                <span class="day-date"><%= day.date_str %></span>
+              </div>
+              <button class="nav-btn" phx-click="next_day" disabled={@selected_day_index == max_idx}>›</button>
+            </div>
+
+            <!-- Last Updated -->
+            <%= if @last_updated do %>
+              <div class="last-updated">
+                🕐 Updated <%= Calendar.strftime(@last_updated, "%d %b %H:%M") %>
+              </div>
+            <% end %>
+
+            <!-- Hourly Rows -->
+            <div class="forecast-list" id="forecast-list">
+              <%= for f <- day.forecasts do %>
+                <%
+                  current = is_current_hour?(f.time)
+                  color = roughness_color(f.roughness_status)
+                  label = roughness_label(f.roughness_status)
+                %>
+                <div class={"hour-row #{if current, do: "current-hour"}"} style={if current, do: "border-left: 4px solid #{color}"}>
+                  <!-- Time -->
+                  <div class="col-time">
+                    <span class={"time-text #{if current, do: "current"}"}><%= format_time(f.time) %></span>
+                  </div>
+
+                  <!-- Weather -->
+                  <div class="col-weather">
+                    <div class="weather-main">
+                      <span class="weather-icon"><%= wmo_icon(f.wmo_code) %></span>
+                      <span class="temp"><%= round(f.temp_c) %>°</span>
+                    </div>
+                    <div class="weather-sub"><%= round(f.wind_kph) %> km/h</div>
+                    <div class="rain">💧<%= f.rain_pct %>%</div>
+                  </div>
+
+                  <!-- Swell -->
+                  <div class="col-swell">
+                    <div class="swell-main">
+                      <span class="swell-height"><%= Float.round(f.wave_m, 1) %>m</span>
+                      <span class="swell-arrow"><%= swell_arrow(f.wave_dir) %></span>
+                    </div>
+                    <div class="sea-temp"><%= round(f.sea_temp_c) %>°🌊</div>
+                  </div>
+
+                  <!-- Roughness -->
+                  <div class="col-roughness">
+                    <div class="roughness-waves">
+                      <%= for _ <- 1..wave_count(f.roughness_status) do %>
+                        <span class="wave-icon" style={"color: #{color}"}>〜</span>
+                      <% end %>
+                    </div>
+                    <div class="roughness-score" style={"color: #{color}"}><%= f.roughness %>%</div>
+                    <div class="roughness-label" style={"color: #{color}; font-size: 9px"}><%= label %></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= if @active_tab == :posts do %>
+      <div class="posts-header">
+        <span class="posts-title">Near <%= @selected_location.name %></span>
+        <button class="btn-fab" phx-click="open_compose">
+          📷 Post photo
+        </button>
+      </div>
+
+      <%= if @posts_loading do %>
+        <div class="loading-state"><div class="spinner"></div></div>
+      <% else %>
+        <%= if @posts == [] do %>
+          <div class="empty-state">
+            <p>No posts nearby yet.</p>
+            <button class="btn-primary" phx-click="open_compose">Be the first to post!</button>
+          </div>
+        <% else %>
+          <div class="posts-list">
+            <%= for post <- @posts do %>
+              <div class="post-card" id={"post-#{post.id}"}>
+                <%= if post.images != [] do %>
+                  <div class="post-image-wrap">
+                    <img src={image_url(hd(post.images))} alt="Post photo" class="post-image" loading="lazy" />
+                  </div>
+                <% end %>
+                <div class="post-body">
+                  <div class="post-meta">
+                    <span class="post-location">📍 <%= post.location_name %></span>
+                    <%= if Map.get(post, :distance_km) do %>
+                      <span class="post-distance"><%= format_distance(post.distance_km) %></span>
+                    <% end %>
+                    <span class="post-time"><%= time_ago(post.inserted_at) %></span>
+                  </div>
+                  <%= if post.comment do %>
+                    <p class="post-comment"><%= post.comment %></p>
+                  <% end %>
+                  <div class="post-actions">
+                    <a href={~p"/s/#{String.slice(post.id, 0, 8)}"} class="post-share-link" target="_blank">🔗 Share</a>
+                    <%= if @current_scope && @current_scope.user.id == post.user_id do %>
+                      <button class="post-delete-btn" phx-click="delete_post" phx-value-id={post.id}
+                        data-confirm="Delete this post?">🗑️</button>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </main>
+
+  <!-- Footer -->
+  <footer style="text-align:center; padding: 20px 16px; border-top: 1px solid rgba(255,255,255,0.06);">
+    <a href="/about" style="font-size:13px; color:#64748B; text-decoration:none;">About Dip Report</a>
+    <span style="color:#334155; margin: 0 8px;">·</span>
+    <a href="/html/settings" style="font-size:13px; color:#64748B; text-decoration:none;">Settings</a>
+  </footer>
+
+  <script>
+    document.addEventListener('click', function() {
+      document.getElementById('location-menu')?.classList.add('hidden');
+    });
+  </script>
+
+  <!-- Compose Modal -->
+  <%= if @show_compose do %>
+    <div class="modal-overlay" phx-click="close_compose">
+      <div class="modal-sheet" phx-click-away="close_compose" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <span class="modal-title">Post a photo</span>
+          <button class="icon-btn" phx-click="close_compose">✕</button>
+        </div>
+
+        <form phx-submit="submit_post" phx-change="validate_upload">
+          <div class="upload-area">
+            <%= if Enum.any?(@uploads.photo.entries) do %>
+              <%= for entry <- @uploads.photo.entries do %>
+                <div class="upload-preview">
+                  <.live_img_preview entry={entry} class="preview-img" />
+                  <button type="button" phx-click="cancel_upload" phx-value-ref={entry.ref} class="cancel-upload">✕</button>
+                </div>
+              <% end %>
+            <% else %>
+              <label class="upload-label" for="photo-input">
+                <span class="upload-icon">📷</span>
+                <span>Tap to add a photo</span>
+              </label>
+            <% end %>
+            <.live_file_input upload={@uploads.photo} id="photo-input" class="file-input" />
+          </div>
+
+          <%= if @compose_error do %>
+            <p class="compose-error"><%= @compose_error %></p>
+          <% end %>
+
+          <textarea
+            class="compose-textarea"
+            placeholder="Add a comment (optional)"
+            phx-keyup="update_compose_comment"
+            phx-value={@compose_comment}
+            rows="3"
+          ><%= @compose_comment %></textarea>
+
+          <p class="compose-public-note">🌍 This post will be public</p>
+
+          <button type="submit" class="btn-primary btn-full" disabled={@compose_uploading}>
+            <%= if @compose_uploading, do: "Uploading…", else: "Upload & Share" %>
+          </button>
+        </form>
+      </div>
+    </div>
+  <% end %>
+</div>

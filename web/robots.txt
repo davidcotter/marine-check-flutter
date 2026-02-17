@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /html
+
+Sitemap: https://dipreport.com/sitemap.xml

@@ -1,0 +1,24 @@
+Running Gradle task 'assembleRelease'...                        
+lib/services/marine_service.dart:413:58: Error: The getter 'SettingsService' isn't defined for the type 'MarineService'.
+ - 'MarineService' is from 'package:marine_check/services/marine_service.dart' ('lib/services/marine_service.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'SettingsService'.
+      await HomeWidget.saveWidgetData<int>('theme_mode', SettingsService.themeMode.index);
+                                                         ^^^^^^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildRelease'.
+> Process 'command '/home/david/flutter/bin/flutter'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7s
+Running Gradle task 'assembleRelease'...                            7.6s
+Gradle task assembleRelease failed with exit code 1

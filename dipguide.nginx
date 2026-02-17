@@ -1,0 +1,100 @@
+server {
+    server_name dipguide.com;
+    root /var/www/dipguide.com;
+    index index.html;
+    client_max_body_size 25M;
+
+    # Serve Flutter Web App
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy API requests to Phoenix Backend
+    location /api {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Proxy uploaded images to Phoenix Backend
+    location /uploads {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Proxy share pages (for social previews) to Phoenix Backend
+    location /share {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Webcam relays (same-origin URLs for web app)
+    location = /webcams/fortyfoot {
+        proxy_pass https://g0.ipcamlive.com/player/player.php?alias=6008744a58a63;
+        proxy_ssl_server_name on;
+        proxy_set_header Host g0.ipcamlive.com;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location = /webcams/tramore.mjpg {
+        proxy_pass http://78tramore.home.dyndns.org/mjpg/1/video.mjpg;
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_set_header Host 78tramore.home.dyndns.org;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Proxy Auth requests to Phoenix Backend
+    location /auth {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Proxy LiveView socket
+    location /live {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+    location /socket {
+        proxy_pass http://127.0.0.1:4040;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/dipguide.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dipguide.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = dipguide.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    listen [::]:80;
+    server_name dipguide.com;
+    return 404; # managed by Certbot
+}

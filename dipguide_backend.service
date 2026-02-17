@@ -1,0 +1,22 @@
+[Unit]
+Description=DipGuide Phoenix Backend Service
+After=local-fs.target network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/dipguide_backend/bin
+ExecStart=/opt/dipguide_backend/bin/dipguide_backend start
+ExecStop=/opt/dipguide_backend/bin/dipguide_backend stop
+Restart=on-failure
+RestartSec=5
+Environment=PORT=4040
+Environment=MIX_ENV=prod
+Environment=PHX_SERVER=true
+Environment=LANG=en_US.UTF-8
+Environment=GOOGLE_CLIENT_ID=PLACEHOLDER
+Environment=GOOGLE_CLIENT_SECRET=PLACEHOLDER
+
+[Install]
+WantedBy=multi-user.target

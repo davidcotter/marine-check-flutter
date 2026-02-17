@@ -38,6 +38,20 @@ dependencies:
   shared_preferences: ^2.5.4
   intl: ^0.20.2
   home_widget: ^0.9.0
+  webview_flutter: ^4.10.0
+  url_launcher: ^6.3.1
+  xml: ^6.5.0
+  share_plus: ^12.0.1
+  dio: ^5.8.0
+  flutter_secure_storage: ^9.2.4
+  app_links: ^6.3.2
+  image_picker: ^1.2.0
+  # Notification dependencies (already added previously)
+  firebase_core: ^4.4.0
+  firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^20.1.0
+  workmanager: ^0.9.0+3
+  timezone: ^0.10.1
 
 dev_dependencies:
   flutter_test:

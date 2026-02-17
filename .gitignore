@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Secrets - never commit real credentials
+oauth_secrets.txt
+vapid_keys.txt
+.deploy_secret
