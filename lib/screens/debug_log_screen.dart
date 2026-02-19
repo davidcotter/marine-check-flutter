@@ -605,8 +605,8 @@ class _RoughnessTab extends StatelessWidget {
           const SizedBox(height: 8),
           _buildKeyRow(context, const Color(0xFF22C55E), '0-20', 'Perfect / Glassy'),
           _buildKeyRow(context, const Color(0xFF3B82F6), '21-40', 'Standard West Coast'),
-          _buildKeyRow(context, const Color(0xFFF97316), '41-60', 'Rough / Advanced'),
-          _buildKeyRow(context, const Color(0xFFEF4444), '60+', 'Unswimmable'),
+          _buildKeyRow(context, const Color(0xFFF97316), '41-60', 'Choppy / Experienced'),
+          _buildKeyRow(context, const Color(0xFFEF4444), '60+', 'High Sea State'),
         ],
       ),
     );

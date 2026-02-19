@@ -1,4 +1,4 @@
-# Dip Report
+    # Dip Report
 
 A Flutter app for open sea swimmers in Ireland. Provides coastal weather, tide data, wave/swell info, community photo sharing, and a custom **Roughness Index** to help assess swimming conditions at a glance.
 

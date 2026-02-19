@@ -605,33 +605,33 @@ class MarineService {
     SwimCondition status;
     String reason;
 
-    final ripTideWarning = crossSeaLevel == 'cross-sea'
-        ? '⚠️ Rip Tide Risk (${normalizedDelta.round()}° cross-sea)'
+    final crossSeaWarning = crossSeaLevel == 'cross-sea'
+        ? 'Cross-swell (${normalizedDelta.round()}°)'
         : '';
 
     // Hard overrides first
     if (waveHeight >= 4 || windSpeed >= 72 || wmoCode >= 95) {
       status = SwimCondition.unsafe;
       reason = waveHeight >= 4
-          ? 'Dangerous Wave Height (${waveHeight.toStringAsFixed(1)}m)'
+          ? 'Very Large Waves (${waveHeight.toStringAsFixed(1)}m)'
           : windSpeed >= 72
               ? 'Storm Force Winds (${windSpeed}km/h)'
-              : 'Severe Weather Alert';
+              : 'Severe Weather';
     } else if (crossSeaLevel == 'cross-sea' && roughness > 40) {
       status = SwimCondition.rough;
-      reason = ripTideWarning;
+      reason = crossSeaWarning;
     } else if (roughness <= 20) {
       status = SwimCondition.calm;
-      reason = ripTideWarning.isNotEmpty ? ripTideWarning : 'Perfect / Glassy';
+      reason = crossSeaWarning.isNotEmpty ? crossSeaWarning : 'Flat / Glassy';
     } else if (roughness <= 40) {
       status = SwimCondition.medium;
-      reason = ripTideWarning.isNotEmpty ? ripTideWarning : 'Standard West Coast';
+      reason = crossSeaWarning.isNotEmpty ? crossSeaWarning : 'Standard West Coast';
     } else if (roughness <= 60) {
       status = SwimCondition.rough;
-      reason = ripTideWarning.isNotEmpty ? ripTideWarning : 'Advanced Swimmers Only';
+      reason = crossSeaWarning.isNotEmpty ? crossSeaWarning : 'Experienced Swimmers';
     } else {
       status = SwimCondition.unsafe;
-      reason = 'Dangerous / Unswimmable';
+      reason = 'High Sea State';
     }
 
     // Capture precise calculation data for Debug Screen logic reuse

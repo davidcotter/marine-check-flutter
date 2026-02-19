@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 import '../models/marine_data.dart';
 import '../services/tide_service.dart';
 import '../services/location_service.dart';
@@ -9,6 +10,7 @@ import 'wave_visualization.dart';
 import 'weather_trend.dart';
 import 'roughness_explanation_modal.dart';
 import 'tide_graphic.dart';
+import 'animated_wave_widget.dart';
 import 'share_modal.dart';
 import '../screens/debug_log_screen.dart';
 
@@ -49,10 +51,10 @@ class _HourDetailSheetState extends State<HourDetailSheet> {
 
   String get _statusLabel {
     switch (widget.forecast.swimCondition.status) {
-      case SwimCondition.unsafe: return 'UNSAFE';
-      case SwimCondition.rough: return 'ROUGH';
-      case SwimCondition.medium: return 'MEDIUM';
-      case SwimCondition.calm: return 'CALM';
+      case SwimCondition.unsafe: return 'INTENSE';
+      case SwimCondition.rough: return 'CHOPPY';
+      case SwimCondition.medium: return 'MODERATE';
+      case SwimCondition.calm: return 'GLASSY';
     }
   }
 
@@ -97,6 +99,7 @@ class _HourDetailSheetState extends State<HourDetailSheet> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final timeStr = '${widget.forecast.time.hour.toString().padLeft(2, '0')}:00';
+    final dayStr = DateFormat('EEE d MMM').format(widget.forecast.time);
     final selectedHourIndex = widget.allHours?.indexWhere((h) => 
         h.time.hour == widget.forecast.time.hour) ?? -1;
     
@@ -131,13 +134,24 @@ class _HourDetailSheetState extends State<HourDetailSheet> {
               alignment: Alignment.center,
               children: [
                 Center(
-                  child: Text(
-                    timeStr,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+                  child: Column(
+                    children: [
+                      Text(
+                        timeStr,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        dayStr,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Positioned(
@@ -152,37 +166,83 @@ class _HourDetailSheetState extends State<HourDetailSheet> {
               ],
             ),
             if (widget.tide != null) ...[
-              const SizedBox(height: 4),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  TideGraphic(
-                    percentage: widget.tide!.percentage,
-                    color: Color(UnitConverter.getTideColor(widget.tide!.status)),
-                    width: 42,
-                    height: 24,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  // Weather — col 1
+                  Column(
                     children: [
+                      Text(_weatherIcon, style: const TextStyle(fontSize: 28)),
+                      const SizedBox(height: 4),
                       Text(
-                    UnitConverter.formatHeight(widget.tide!.level),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(UnitConverter.getTideColor(widget.tide!.status)),
-                    ),
-                  ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.tide!.isRising ? '↑' : '↓',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(UnitConverter.getTideColor(widget.tide!.status)),
-                        ),
+                        UnitConverter.formatTemp(widget.forecast.weather.temperature),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                       ),
+                      Text(
+                        '💧${widget.forecast.weather.precipitationProbability}%',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        '💨${UnitConverter.formatWind(widget.forecast.weather.windSpeed.toDouble())}',
+                        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                      ),
+                      Text('weather', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                  // Tide — col 2 (matches main screen order)
+                  Column(
+                    children: [
+                      TideGraphic(
+                        percentage: widget.tide!.percentage,
+                        color: Color(UnitConverter.getTideColor(widget.tide!.status)),
+                        width: 42,
+                        height: 28,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            UnitConverter.formatHeight(widget.tide!.level),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(UnitConverter.getTideColor(widget.tide!.status)),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            widget.tide!.isRising ? '↑' : '↓',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(UnitConverter.getTideColor(widget.tide!.status)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text('tide', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                  // Sea state — col 3, animated wave widget same as main screen
+                  Column(
+                    children: [
+                      AnimatedWaveWidget(
+                        count: widget.forecast.swimCondition.roughnessIndex <= 20 ? 1
+                            : widget.forecast.swimCondition.roughnessIndex <= 40 ? 2 : 3,
+                        color: _statusColor,
+                        size: 26,
+                        speed: widget.forecast.swimCondition.roughnessIndex <= 20 ? 0.5
+                            : widget.forecast.swimCondition.roughnessIndex <= 40 ? 1.0
+                            : widget.forecast.swimCondition.roughnessIndex <= 60 ? 1.8 : 2.5,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.forecast.swell.height.toStringAsFixed(1)}m',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _statusColor),
+                      ),
+                      Text('waves', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ],
@@ -211,10 +271,11 @@ class _HourDetailSheetState extends State<HourDetailSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    widget.forecast.swimCondition.reason,
+                    'Always swim within your ability and stay within your depth.',
                     style: TextStyle(
-                      color: colorScheme.onSurface,
-                      fontSize: 14,
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
@@ -634,9 +695,9 @@ class _RoughnessGauge extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Calm', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
-            Text('Medium', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
-            Text('Rough', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
-            Text('Unsafe', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
+            Text('Moderate', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
+            Text('Choppy', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
+            Text('Intense', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
           ],
         ),
       ],

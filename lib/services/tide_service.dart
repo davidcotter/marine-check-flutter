@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/marine_data.dart';
 
 /// Tide data from Marine Institute
@@ -64,10 +63,8 @@ class TideService {
     final encodedStation = Uri.encodeComponent('"$stationId"');
     final rawQuery = 'time,Water_Level&stationID=$encodedStation&time>=$startStr&time<=$endStr&orderBy("time")';
 
-    // On web, proxy through our Phoenix backend to avoid CORS
-    final uri = kIsWeb
-        ? Uri.parse('/api/proxy/tide?q=${Uri.encodeComponent(rawQuery)}')
-        : Uri.parse('$_baseUrl?$rawQuery');
+    // On web, call Marine Institute directly — they send CORS: *
+    final uri = Uri.parse('$_baseUrl?$rawQuery');
 
     try {
       final response = await http.get(uri).timeout(const Duration(seconds: 10));

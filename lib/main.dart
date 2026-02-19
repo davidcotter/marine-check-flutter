@@ -19,33 +19,19 @@ import 'package:flutter/services.dart';
 import 'widgets/forecast_summary_card.dart';
 import 'widgets/share_modal.dart';
 import 'services/notification_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'services/auth_service.dart';
-import 'screens/login_screen.dart';
-import 'screens/location_posts_screen.dart';
 import 'package:app_links/app_links.dart';
 import 'dart:async';
-import 'utils/web_auth_stub.dart'
-    if (dart.library.html) 'utils/web_auth.dart';
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  print('Handling a background message: ${message.messageId}');
-}
-
 Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Global error handler — catch any unhandled Flutter framework errors
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
       debugPrint('FlutterError: ${details.exception}');
     };
 
-    // Build-time widget error boundary — show red error box instead of crashing
     ErrorWidget.builder = (FlutterErrorDetails details) {
       return Material(
         color: const Color(0xFF0F172A),
@@ -65,16 +51,11 @@ Future<void> main() async {
     await SettingsService.init();
     await BackgroundService.init();
     await NotificationService.initialize();
-    await AuthService().init();
-    
-    // Set the background messaging handler early on, as a named top-level function
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     runApp(const MarineCheckApp());
   } catch (e, stack) {
     debugPrint('CRITICAL STARTUP ERROR: $e');
     debugPrint(stack.toString());
-    // Fallback to start app even if settings fail
     runApp(const MarineCheckApp());
   }
 }
@@ -99,26 +80,10 @@ class _MarineCheckAppState extends State<MarineCheckApp> {
   void initState() {
     super.initState();
     _loadTheme();
-    _initAuth();
     _initDeepLinks();
   }
 
-  void _initAuth() {
-    AuthService().addListener(() {
-      if (mounted) setState(() {});
-    });
-
-    // On web, check if the URL contains an auth_token from OAuth callback
-    if (kIsWeb) {
-      final authToken = getAuthTokenFromUrl();
-      if (authToken != null && authToken.isNotEmpty) {
-        AuthService().setToken(authToken);
-        cleanAuthTokenFromUrl();
-      }
-    }
-  }
-
-  Future<void> _initDeepLinks() async {
+  void _initDeepLinks() async {
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     });
@@ -131,20 +96,6 @@ class _MarineCheckAppState extends State<MarineCheckApp> {
 
   void _handleDeepLink(Uri uri) {
     debugPrint('MarineCheck: Deep link received: $uri');
-    if (uri.scheme == 'dipguide' && uri.host == 'auth') {
-      final token = uri.queryParameters['token'];
-      if (token != null) {
-        AuthService().setToken(token);
-      }
-    }
-    // Handle web OAuth callback token
-    final authToken = uri.queryParameters['auth_token'];
-    if (authToken != null && authToken.isNotEmpty) {
-      AuthService().setToken(authToken);
-      if (kIsWeb) {
-        cleanAuthTokenFromUrl();
-      }
-    }
   }
 
   @override
@@ -254,13 +205,7 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
   // Deep link state
   String? _deepLinkTime;
   String? _deepLinkMessage;
-  String? _deepLinkPostId;
-  String? _deepLinkView;
-  bool _deepLinkCompose = false;
-  bool _isDeepLinkLoad = false;
   HourlyForecast? _sharedForecast;
-  // Shared post state removed — shared posts open in LocationPostsScreen
-  bool _openedPostsFromLink = false;
 
   @override
   void initState() {
@@ -280,19 +225,9 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
     
     final uri = Uri.base;
     final params = uri.queryParameters;
-    _deepLinkView = params['view'];
-    _deepLinkCompose = params['compose'] == '1' || params['compose'] == 'true';
 
-    // Optional shared photo/comment post id — auto-open posts view
-    final postId = params['p'];
-    if (postId != null && postId.isNotEmpty) {
-      _deepLinkPostId = postId;
-      _deepLinkView ??= 'posts';
-    }
-    
     if (params.containsKey('v')) {
       try {
-        // Format: lat,lon,name,timestamp
         final parts = params['v']!.split(',');
         if (parts.length >= 2) {
           final lat = double.parse(parts[0]);
@@ -303,7 +238,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
             final ts = int.parse(parts[3]);
             _deepLinkTime = DateTime.fromMillisecondsSinceEpoch(ts * 1000).toIso8601String();
           }
-          
           if (parts.length >= 5) {
             _deepLinkMessage = Uri.decodeComponent(parts[4]);
           }
@@ -314,7 +248,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
             lat: lat,
             lon: lon,
           );
-          _isDeepLinkLoad = true;
           print('MarineCheck: Compact deep link detected - $name ($lat, $lon)');
           return;
         }
@@ -336,7 +269,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
           lat: lat,
           lon: lon,
         );
-        _isDeepLinkLoad = true;
         print('MarineCheck: Deep link detected - $name ($lat, $lon) @ $_deepLinkTime');
       } catch (e) {
         print('MarineCheck: Deep link parse error: $e');
@@ -386,29 +318,11 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
       if (!mounted) return;
       setState(() {
         _locations = locations;
-        if (!_isDeepLinkLoad) {
+        if (_selectedLocation == null) {
           _selectedLocation = selected;
         }
       });
-      // If link wants to open the posts view, do it after first frame.
-      if (_deepLinkView == 'posts' && !_openedPostsFromLink) {
-        _openedPostsFromLink = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          if (_selectedLocation == null) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => LocationPostsScreen(
-                location: _selectedLocation!,
-                forecastTimeUtc: _deepLinkTime != null ? DateTime.parse(_deepLinkTime!).toUtc() : null,
-                initialPostId: _deepLinkPostId,
-                initialCompose: _deepLinkCompose,
-              ),
-            ),
-          );
-        });
-      }
+      // If link wants to open the posts view, do it after first frame — removed (no posts)
       // Optimistic: try to show cached data instantly, then refresh in background
       await _loadCachedThenRefresh();
     } catch (e) {
@@ -980,7 +894,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
   }
 
   void _openShareModal(HourlyForecast forecast) {
-    final baseUrl = kIsWeb ? '${Uri.base.origin}${Uri.base.path}' : 'https://dipreport.com/';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -988,7 +901,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
       builder: (_) => ShareModal(
         location: _selectedLocation!,
         forecast: forecast,
-        baseUrl: baseUrl,
       ),
     );
   }
@@ -1116,29 +1028,6 @@ class _MarineHomePageState extends State<MarineHomePage> with TickerProviderStat
                 userLon: _selectedLocation?.lon,
               )),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_a_photo),
-            tooltip: 'Swimmer posts',
-            onPressed: () {
-              if (_selectedLocation == null || _days.isEmpty) return;
-              final currentDay = _days[_selectedDayIndex];
-              int hourIndex = (_scrollController.offset / 95.0).round();
-              if (hourIndex < 0) hourIndex = 0;
-              if (hourIndex >= currentDay.forecasts.length) hourIndex = currentDay.forecasts.length - 1;
-              final forecastTimeUtc = currentDay.forecasts[hourIndex].time.toUtc();
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => LocationPostsScreen(
-                    location: _selectedLocation!,
-                    forecastTimeUtc: forecastTimeUtc,
-                    initialCompose: false,
-                  ),
-                ),
-              );
-            },
           ),
           RotationTransition(
             turns: _refreshController,
@@ -1416,10 +1305,10 @@ class _HourlyRow extends StatelessWidget {
 
   String get _statusLabel {
     switch (forecast.swimCondition.status) {
-      case SwimCondition.calm: return 'CALM';
-      case SwimCondition.medium: return 'MEDIUM';
-      case SwimCondition.rough: return 'ROUGH';
-      case SwimCondition.unsafe: return 'UNSAFE';
+      case SwimCondition.calm: return 'GLASSY';
+      case SwimCondition.medium: return 'MODERATE';
+      case SwimCondition.rough: return 'CHOPPY';
+      case SwimCondition.unsafe: return 'INTENSE';
     }
   }
 

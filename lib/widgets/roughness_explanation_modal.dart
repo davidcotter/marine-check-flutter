@@ -39,7 +39,7 @@ class RoughnessExplanationModal extends StatelessWidget {
             ),
 
             Text(
-              'Roughness Index Guide',
+              'Sea State Index',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -48,18 +48,18 @@ class RoughnessExplanationModal extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'A measure of sea state roughness from 0 (Calm) to 100 (Unsafe)',
+              'A measure of sea state from 0 (Glassy) to 100 (Intense)',
               style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14),
             ),
             const SizedBox(height: 24),
 
             // Score ranges
-            const _SectionHeader(title: 'Roughness Scale'),
+            const _SectionHeader(title: 'Sea State Scale'),
             const SizedBox(height: 12),
-            _ScoreRow(color: const Color(0xFF22C55E), label: 'CALM', range: '0-20', desc: 'Perfect / Glassy'),
-            _ScoreRow(color: const Color(0xFF3B82F6), label: 'MEDIUM', range: '21-40', desc: 'Standard West Coast'),
-            _ScoreRow(color: const Color(0xFFF97316), label: 'ROUGH', range: '41-60', desc: 'Advanced swimmers only'),
-            _ScoreRow(color: const Color(0xFFEF4444), label: 'UNSAFE', range: '60+', desc: 'Dangerous / Unswimmable'),
+            const _ScoreRow(color: Color(0xFF22C55E), label: 'GLASSY',   range: '0-20',  desc: 'Perfect / Flat'),
+            const _ScoreRow(color: Color(0xFF3B82F6), label: 'MODERATE', range: '21-40', desc: 'Standard West Coast'),
+            const _ScoreRow(color: Color(0xFFF97316), label: 'CHOPPY',   range: '41-60', desc: 'Experienced swimmers'),
+            const _ScoreRow(color: Color(0xFFEF4444), label: 'INTENSE',  range: '60+',   desc: 'High sea state'),
 
             const SizedBox(height: 24),
 
@@ -97,7 +97,7 @@ class RoughnessExplanationModal extends StatelessWidget {
 
             // Cross-sea warning
             if (forecast?.swimCondition.diagnostics?.crossSeaLevel == 'cross-sea') ...[
-              const _SectionHeader(title: 'Rip Tide Warning'),
+              const _SectionHeader(title: 'Cross-Swell Advisory'),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -114,7 +114,7 @@ class RoughnessExplanationModal extends StatelessWidget {
                         Text('⚠️', style: TextStyle(fontSize: 20)),
                         SizedBox(width: 8),
                         Text(
-                          'Cross-Sea Conditions',
+                          'Cross-Swell Detected',
                           style: TextStyle(
                             color: Color(0xFFFCD34D),
                             fontWeight: FontWeight.bold,
@@ -125,7 +125,7 @@ class RoughnessExplanationModal extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'When wave and wind directions differ by 60-120°, dangerous cross-sea conditions can form, increasing rip tide risk.',
+                      'When wave and wind directions differ significantly, cross-swell conditions can form, creating an irregular sea state.',
                       style: TextStyle(color: Color(0xFFFCD34D), fontSize: 13),
                     ),
                   ],
@@ -165,6 +165,37 @@ class RoughnessExplanationModal extends StatelessWidget {
                       label: 'Coordinates', 
                       source: '${forecast!.lat!.toStringAsFixed(4)}, ${forecast!.lon!.toStringAsFixed(4)}'
                     ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Disclaimer
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF334155)),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('ℹ️', style: TextStyle(fontSize: 16)),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Always swim within your ability and stay within your depth. '
+                      'Conditions can change quickly. This data is for information only — '
+                      'use your own judgement before entering the water.',
+                      style: TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -55,16 +55,16 @@ class UnitConverter {
     }
   }
 
-  // Roughness Safety Logic
+  // Sea State Index
   static ({String label, int color}) getRoughnessStatus(int roughnesIndex) {
     if (roughnesIndex <= 20) {
-      return (label: 'Calm', color: 0xFF22C55E); // Green
+      return (label: 'Glassy', color: 0xFF22C55E); // Green
     } else if (roughnesIndex <= 40) {
-      return (label: 'Medium', color: 0xFF3B82F6); // Blue
+      return (label: 'Moderate', color: 0xFF3B82F6); // Blue
     } else if (roughnesIndex <= 60) {
-      return (label: 'Rough', color: 0xFFF97316); // Orange
+      return (label: 'Choppy', color: 0xFFF97316); // Orange
     } else {
-      return (label: 'Unsafe', color: 0xFFEF4444); // Red
+      return (label: 'Intense', color: 0xFFEF4444); // Red
     }
   }
 

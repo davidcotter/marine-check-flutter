@@ -43,7 +43,58 @@
 </head>
 
 <body style="background-color:#0f172a;margin:0;">
+
+  <!-- Loading spinner — visible immediately, removed once Flutter mounts -->
+  <div id="loading" style="
+    position:fixed;inset:0;
+    background:#0f172a;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    z-index:9999;
+  ">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin-bottom:20px">
+      <path d="M24 4 C24 4 40 14 40 28 C40 37 32.8 44 24 44 C15.2 44 8 37 8 28 C8 14 24 4 24 4Z"
+        fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <div style="
+      width:36px;height:36px;
+      border:3px solid #1e293b;
+      border-top-color:#3B82F6;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    "></div>
+    <p style="color:#64748b;font-family:sans-serif;font-size:13px;margin-top:16px;letter-spacing:0.05em;">
+      Loading…
+    </p>
+  </div>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Remove the loading overlay once Flutter paints its first frame
+    (function() {
+      const remove = () => {
+        const el = document.getElementById('loading');
+        if (el) {
+          el.style.transition = 'opacity 0.3s';
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 300);
+        }
+      };
+      // Flutter adds a <flt-glass-pane> or <flutter-view> when it mounts
+      const observer = new MutationObserver(() => {
+        if (document.querySelector('flt-glass-pane,flutter-view')) {
+          observer.disconnect();
+          remove();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      // Hard fallback — remove after 12s no matter what
+      setTimeout(remove, 12000);
+    })();
+  </script>
   <script>
     // ── Service Worker + Push Notifications ──────────────────────────────────
 
@@ -118,6 +169,33 @@
     };
 
     registerServiceWorker();
+
+    if ('serviceWorker' in navigator) {
+      // One-time migration: unregister the old Flutter SW and wipe its caches.
+      // We only do this once per browser session to avoid reload loops.
+      if (!sessionStorage.getItem('sw_migrated')) {
+        sessionStorage.setItem('sw_migrated', '1');
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          let unregistered = false;
+          for (const reg of registrations) {
+            const url = (reg.active || reg.installing || reg.waiting || {}).scriptURL || '';
+            if (url.includes('flutter_service_worker')) {
+              reg.unregister();
+              unregistered = true;
+              console.log('DipReport: unregistered old Flutter SW');
+            }
+          }
+          if (unregistered) {
+            // Wipe stale Flutter caches only when we found and removed the old SW
+            caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+          }
+        });
+      }
+
+      // No controllerchange reload — it causes infinite loops.
+      // Entry points are always fetched from network so new deploys
+      // are picked up automatically without needing a forced reload.
+    }
 
     // ── PWA Install Prompt ────────────────────────────────────────────────────
 

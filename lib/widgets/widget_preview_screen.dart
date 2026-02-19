@@ -35,9 +35,9 @@ class WidgetPreviewScreen extends StatelessWidget {
 
   String _roughnessLabel(int roughness) {
     if (roughness <= 25) return 'Calm';
-    if (roughness <= 50) return 'Medium';
-    if (roughness <= 75) return 'Rough';
-    return 'Unsafe';
+    if (roughness <= 50) return 'Moderate';
+    if (roughness <= 75) return 'Choppy';
+    return 'Intense';
   }
 
   @override

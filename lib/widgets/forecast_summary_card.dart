@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/marine_data.dart';
 import '../utils/unit_converter.dart';
 import 'tide_graphic.dart';
+import 'animated_wave_widget.dart';
 
 class ForecastSummaryCard extends StatelessWidget {
   final String title;
@@ -144,24 +145,15 @@ class ForecastSummaryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Roughness
+              // Sea State (wave widget, same as hourly rows)
               Expanded(
                 child: Column(
                   children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(roughnessStatus.color).withOpacity(0.2),
-                        border: Border.all(color: Color(roughnessStatus.color), width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '$avgRoughness',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(roughnessStatus.color)),
-                        ),
-                      ),
+                    AnimatedWaveWidget(
+                      count: avgRoughness <= 20 ? 1 : avgRoughness <= 40 ? 2 : 3,
+                      color: Color(roughnessStatus.color),
+                      size: 22,
+                      speed: avgRoughness <= 20 ? 0.5 : avgRoughness <= 40 ? 1.0 : avgRoughness <= 60 ? 1.8 : 2.5,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -169,7 +161,7 @@ class ForecastSummaryCard extends StatelessWidget {
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(roughnessStatus.color)),
                     ),
                     Text(
-                      'Roughness',
+                      'Sea State',
                       style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],

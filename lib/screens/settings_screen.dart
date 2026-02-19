@@ -9,8 +9,7 @@ import '../services/background_service.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/js_bridge_stub.dart'
     if (dart.library.js_util) '../utils/js_bridge_web.dart' as js_bridge;
-import '../services/auth_service.dart';
-import 'login_screen.dart';
+
 
 class SettingsScreen extends StatefulWidget {
   final List<HourlyForecast> forecasts;
@@ -92,55 +91,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         children: [
           const SizedBox(height: 16),
-          _buildSectionHeader('ACCOUNT'),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-            ),
-            child: AuthService().isAuthenticated
-              ? Column(
-                  children: [
-                    ListTile(
-                      leading: Icon(Icons.person_outline, color: Theme.of(context).colorScheme.primary),
-                      title: Text(
-                        AuthService().user?['email'] ?? 'User',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        'Signed in via ${AuthService().user?['email'] != null ? 'Email/Social' : 'Token'}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
-                      ),
-                    ),
-                    _buildDivider(),
-                    ListTile(
-                      onTap: () {
-                        AuthService().logout();
-                        if (mounted) setState(() {});
-                      },
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text('Sign Out', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                )
-              : ListTile(
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                    if (mounted) setState(() {});
-                  },
-                  leading: Icon(Icons.login, color: Theme.of(context).colorScheme.primary),
-                  title: Text('Sign In', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
-                  subtitle: Text('Sync settings and notifications across devices',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
-          ),
-          const SizedBox(height: 12),
           _buildSectionHeader('APPEARANCE'),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -179,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildInfoItem(context, 'Good Conditions Only', 'Notifies you only when the surf status is "Calm" or "Medium". "Rough" or "Unsafe" conditions will be skipped.'),
+                                  _buildInfoItem(context, 'Good Conditions Only', 'Notifies you only when the sea state is "Glassy" or "Moderate". "Choppy" or "Intense" conditions will be skipped.'),
                                   const SizedBox(height: 16),
                                   _buildInfoItem(context, 'High Tide Only', 'Notifies you only when the tide is near its peak (High). Useful if you prefer swimming at high tide.'),
                                   const SizedBox(height: 16),

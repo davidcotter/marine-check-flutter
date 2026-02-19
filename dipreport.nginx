@@ -51,8 +51,14 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Phoenix static assets (JS/CSS for LiveView)
-    location /assets {
+    # Flutter static assets — must come BEFORE the Phoenix /assets proxy
+    location /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Phoenix LiveView assets (JS/CSS for LiveView) — only under /assets/phoenix
+    location /assets/phoenix {
         proxy_pass http://127.0.0.1:4040;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -73,6 +79,14 @@ server {
     # Flutter Web App (all other paths)
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # Never cache the SW or Flutter bootstrap files — forces update on next visit
+    location ~* ^/(index\.html|flutter\.js|flutter_service_worker\.js|main\.dart\.js|flutter_bootstrap\.js|sw\.js)$ {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate";
+        add_header Pragma "no-cache";
+        expires 0;
+        try_files $uri =404;
     }
 
     # API
@@ -101,8 +115,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Short share links
-    location /s {
+    # Short share links — exact prefix to avoid matching /sw.js
+    location ^~ /s/ {
         proxy_pass http://127.0.0.1:4040;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
